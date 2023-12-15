@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Sportradar.Services.Data;
 using Sportradar.Services.Entities;
 
 namespace Sportradar.Services.DbContexts
@@ -7,9 +8,8 @@ namespace Sportradar.Services.DbContexts
     {
         public ScoreBoardDbContext(DbContextOptions options) : base(options)
         {
-
         }
-        
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
         }
@@ -17,6 +17,9 @@ namespace Sportradar.Services.DbContexts
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             if (modelBuilder == null) { throw new ArgumentNullException(nameof(modelBuilder)); }
+
+            modelBuilder.Entity<Team>()
+                .HasData(TeamData.GetTeamCollection());
 
             modelBuilder.Entity<Game>(
                 entity =>
@@ -29,6 +32,7 @@ namespace Sportradar.Services.DbContexts
             );
         }
 
-        public DbSet<Game> Game { get; set; }
+        public DbSet<Game> Game { get; set; } = null!;
+        public DbSet<Team> Team { get; set; } = null!;
     }
 }

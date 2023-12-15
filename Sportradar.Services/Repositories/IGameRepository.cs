@@ -6,5 +6,6 @@ namespace Sportradar.Services.Repositories
     {
         Task AddAsync(Game game);
         Task CommitAsync();
+        Task<Team?> GetTeam(string code);
     }
 }

@@ -1,4 +1,5 @@
-﻿using Sportradar.Services.DbContexts;
+﻿using Microsoft.EntityFrameworkCore;
+using Sportradar.Services.DbContexts;
 using Sportradar.Services.Entities;
 
 namespace Sportradar.Services.Repositories
@@ -10,6 +11,7 @@ namespace Sportradar.Services.Repositories
         public GameRepository(ScoreBoardDbContext context)
         {
             _context = context;
+            _context.Database.EnsureCreated();
         }
 
         public async Task AddAsync(Game game)
@@ -22,6 +24,14 @@ namespace Sportradar.Services.Repositories
         public async Task CommitAsync()
         {
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<Team?> GetTeam(string code)
+        {
+            return await _context
+                .Team
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.TeamCode.Equals(code));
         }
     }
 }
