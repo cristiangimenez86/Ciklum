@@ -15,6 +15,15 @@ namespace Sportradar.Services.Repositories
             _context.Database.EnsureCreated();
         }
 
+        public async Task<IEnumerable<Game>> GetAsync()
+        {
+            return await _context
+                .Game
+                .OrderBy(x => x.TotalScore)
+                .ThenByDescending(x => x.CreatedDate)
+                .ToListAsync();
+        }
+
         public async Task<Game?> GetAsync(string homeTeamCode, string awayTeamCode)
         {
             return await _context

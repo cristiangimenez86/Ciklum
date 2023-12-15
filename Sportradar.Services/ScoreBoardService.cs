@@ -47,7 +47,7 @@ namespace Sportradar.Services
             }
             catch (Exception e)
             {
-                _logger.LogError(e, $"ScoreBoardService > StartGame: homeTeamCode = {homeTeamCode}, awayTeamCode = {awayTeamCode}");
+                _logger.LogError(e, $"ScoreBoardService > StartGameAsync: homeTeamCode = {homeTeamCode}, awayTeamCode = {awayTeamCode}");
                 throw;
             }
         }
@@ -62,7 +62,7 @@ namespace Sportradar.Services
             }
             catch (Exception e)
             {
-                _logger.LogError(e, $"ScoreBoardService > UpdateScore: updateScoreModel = {JsonSerializer.Serialize(updateScoreModel)}");
+                _logger.LogError(e, $"ScoreBoardService > UpdateScoreAsync: updateScoreModel = {JsonSerializer.Serialize(updateScoreModel)}");
                 throw;
             }
         }
@@ -77,7 +77,28 @@ namespace Sportradar.Services
             }
             catch (Exception e)
             {
-                _logger.LogError(e, $"ScoreBoardService > FinishGame: homeTeamCode = {homeTeamCode}, awayTeamCode = {awayTeamCode}");
+                _logger.LogError(e, $"ScoreBoardService > FinishGameAsync: homeTeamCode = {homeTeamCode}, awayTeamCode = {awayTeamCode}");
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<GameSummaryDto>> GetSummaryAsync()
+        {
+            try
+            {
+                var games = await _gameRepository.GetAsync();
+
+                return games.Select(game => new GameSummaryDto
+                {
+                    HomeTeam = game.HomeTeamName,
+                    HomeTeamScore = game.HomeTeamScore,
+                    AwayTeam = game.AwayTeamName,
+                    AwayTeamScore = game.AwayTeamScore
+                }).ToList();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"ScoreBoardService > GetSummaryAsync");
                 throw;
             }
         }

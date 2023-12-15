@@ -5,6 +5,7 @@ namespace Sportradar.Services.Repositories
 {
     public interface IGameRepository
     {
+        Task<IEnumerable<Game>> GetAsync();
         Task AddAsync(Game game);
         Task UpdateScoreAsync(UpdateScoreDto model);
         Task DeleteAsync(string homeTeamCode, string awayTeamCode);

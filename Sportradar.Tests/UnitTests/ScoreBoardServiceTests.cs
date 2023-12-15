@@ -92,5 +92,38 @@ namespace Sportradar.Tests.UnitTests
             _validatorMock.Verify(v => v.ValidateNotNullOrEmptyCodes(homeTeamCode, awayTeamCode), Times.Once);
             _gameRepositoryMock.Verify(repo => repo.DeleteAsync(homeTeamCode, awayTeamCode), Times.Once);
         }
+
+        [Fact]
+        public async Task GetSummaryAsync_ReturnsAListOfGameSummaryDto()
+        {
+            //Arrange
+            var games = new List<Game>()
+            {
+                new() { HomeTeamCode = "ARG", HomeTeamName = "Argentina", HomeTeamScore = 3, AwayTeamCode = "BRA", AwayTeamName = "Brazil", AwayTeamScore = 0 },
+                new() { HomeTeamCode = "URU", HomeTeamName = "Uruguay", HomeTeamScore = 2, AwayTeamCode = "MEX", AwayTeamName = "Mexico", AwayTeamScore = 1 }
+            };
+            _gameRepositoryMock.Setup(repo => repo.GetAsync()).ReturnsAsync(games);
+
+            var expectedSummary = new List<GameSummaryDto>
+            {
+                new() { HomeTeam = "Argentina", HomeTeamScore = 3, AwayTeam = "Brazil", AwayTeamScore = 0 },
+                new() { HomeTeam = "Uruguay", HomeTeamScore = 2, AwayTeam = "Mexico", AwayTeamScore = 1 },
+            };
+
+            //Act
+            var result = await _scoreBoardService.GetSummaryAsync();
+            var actualSummary = result.ToList();
+
+            //Assert
+            Assert.NotEmpty(actualSummary);
+            Assert.Equal(2, expectedSummary.Count);
+
+            var expectedFirstElement = expectedSummary.First();
+            var actualFirstElement = actualSummary.First();
+            Assert.Equal(expectedFirstElement.HomeTeam, actualFirstElement.HomeTeam);
+            Assert.Equal(expectedFirstElement.HomeTeamScore, actualFirstElement.HomeTeamScore);
+            Assert.Equal(expectedFirstElement.AwayTeam, actualFirstElement.AwayTeam);
+            Assert.Equal(expectedFirstElement.AwayTeamScore, actualFirstElement.AwayTeamScore);
+        }
     }
 }
