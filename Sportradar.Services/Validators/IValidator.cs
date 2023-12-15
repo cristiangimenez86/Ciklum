@@ -1,4 +1,5 @@
 ﻿using Sportradar.Services.Entities;
+using Sportradar.Services.Models;
 
 namespace Sportradar.Services.Validators
 {
@@ -6,5 +7,6 @@ namespace Sportradar.Services.Validators
     {
         void ValidateNotNullOrEmptyCodes(string homeTeamCode, string awayTeamCode);
         void ValidateNotNullTeamEntity(Team? homeTeam, Team? awayTeam);
+        void ValidateUpdateScoreModel(UpdateScoreDto updateScoreModel);
     }
 }

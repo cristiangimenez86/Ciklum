@@ -1,7 +1,10 @@
-﻿namespace Sportradar.Services
+﻿using Sportradar.Services.Models;
+
+namespace Sportradar.Services
 {
     public interface IScoreBoardService
     {
-        Task StartGame(string homeTeamCode, string awayTeamCode);
+        Task StartGameAsync(string homeTeamCode, string awayTeamCode);
+        Task UpdateScoreAsync(UpdateScoreDto updateScoreModel);
     }
 }

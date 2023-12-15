@@ -1,7 +1,9 @@
 ﻿using Microsoft.Extensions.Logging;
 using Sportradar.Services.Entities;
+using Sportradar.Services.Models;
 using Sportradar.Services.Repositories;
 using Sportradar.Services.Validators;
+using System.Text.Json;
 
 namespace Sportradar.Services
 {
@@ -21,7 +23,7 @@ namespace Sportradar.Services
             _logger = logger;
         }
 
-        public async Task StartGame(string homeTeamCode, string awayTeamCode)
+        public async Task StartGameAsync(string homeTeamCode, string awayTeamCode)
         {
             try
             {
@@ -46,6 +48,21 @@ namespace Sportradar.Services
             catch (Exception e)
             {
                 _logger.LogError(e, $"ScoreBoardService > StartGame: homeTeamCode = {homeTeamCode}, awayTeamCode = {awayTeamCode}");
+                throw;
+            }
+        }
+
+        public async Task UpdateScoreAsync(UpdateScoreDto updateScoreModel)
+        {
+            try
+            {
+                _validator.ValidateUpdateScoreModel(updateScoreModel);
+
+                await _gameRepository.UpdateScoreAsync(updateScoreModel);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"ScoreBoardService > UpdateScore: updateScoreModel = {JsonSerializer.Serialize(updateScoreModel)}");
                 throw;
             }
         }

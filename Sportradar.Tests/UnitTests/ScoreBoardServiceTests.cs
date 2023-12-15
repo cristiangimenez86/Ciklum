@@ -3,6 +3,7 @@ using Moq;
 using Sportradar.Services;
 using Sportradar.Services.Data;
 using Sportradar.Services.Entities;
+using Sportradar.Services.Models;
 using Sportradar.Services.Repositories;
 using Sportradar.Services.Validators;
 
@@ -40,7 +41,7 @@ namespace Sportradar.Tests.UnitTests
             _validatorMock.Setup(v => v.ValidateNotNullTeamEntity(homeTeam, awayTeam));
 
             //Act
-            await _scoreBoardService.StartGame(homeTeamCode, awayTeamCode);
+            await _scoreBoardService.StartGameAsync(homeTeamCode, awayTeamCode);
 
             //Assert
             _gameRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<Game>()), Times.Once);
@@ -49,6 +50,31 @@ namespace Sportradar.Tests.UnitTests
             _gameRepositoryMock.Verify(repo => repo.GetTeam(awayTeamCode), Times.Once);
             _validatorMock.Verify(v => v.ValidateNotNullOrEmptyCodes(homeTeamCode, awayTeamCode), Times.Once);
             _validatorMock.Verify(v => v.ValidateNotNullTeamEntity(homeTeam, awayTeam), Times.Once);
+        }
+
+        [Theory]
+        [InlineData(2, 1)]
+        [InlineData(2, 2)]
+        [InlineData(3, 0)]
+        public async Task UpdateScore_UpdatesTheScoreOfAMatch_WhenValidData(int homeTeamScore, int awayTeamScore)
+        {
+            //Arrange
+            var updateScoreModel = new UpdateScoreDto
+            {
+                HomeTeamCode = "ARG",
+                HomeTeamScore = homeTeamScore,
+                AwayTeamCode = "BRA",
+                AwayTeamScore = awayTeamScore
+            };
+            _validatorMock.Setup(v => v.ValidateUpdateScoreModel(updateScoreModel));
+            _gameRepositoryMock.Setup(repo => repo.UpdateScoreAsync(updateScoreModel));
+
+            //Act
+            await _scoreBoardService.UpdateScoreAsync(updateScoreModel);
+
+            //Assert
+            _validatorMock.Verify(v => v.ValidateUpdateScoreModel(updateScoreModel), Times.Once);
+            _gameRepositoryMock.Verify(repo => repo.UpdateScoreAsync(updateScoreModel), Times.Once);
         }
     }
 }
