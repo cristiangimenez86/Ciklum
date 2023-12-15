@@ -26,6 +26,8 @@ namespace Sportradar.Tests.UnitTests
 
         [Theory]
         [InlineData("ARG", "MEX")]
+        [InlineData("BOL", "PAR")]
+        [InlineData("CHI", "COL")]
         public async Task StartGameAsync_CreatesANewGame_WhenValidPairOfTeamCodes(string homeTeamCode, string awayTeamCode)
         {
             //Arrange
