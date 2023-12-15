@@ -29,8 +29,8 @@ namespace Sportradar.Services
             {
                 _validator.ValidateNotNullOrEmptyCodes(homeTeamCode, awayTeamCode);
 
-                var homeTeam = await _gameRepository.GetTeam(homeTeamCode);
-                var awayTeam = await _gameRepository.GetTeam(awayTeamCode);
+                var homeTeam = await _gameRepository.GetTeamAsync(homeTeamCode);
+                var awayTeam = await _gameRepository.GetTeamAsync(awayTeamCode);
 
                 _validator.ValidateNotNullTeamEntity(homeTeam, awayTeam);
 
@@ -63,6 +63,21 @@ namespace Sportradar.Services
             catch (Exception e)
             {
                 _logger.LogError(e, $"ScoreBoardService > UpdateScore: updateScoreModel = {JsonSerializer.Serialize(updateScoreModel)}");
+                throw;
+            }
+        }
+
+        public async Task FinishGameAsync(string homeTeamCode, string awayTeamCode)
+        {
+            try
+            {
+                _validator.ValidateNotNullOrEmptyCodes(homeTeamCode, awayTeamCode);
+
+                await _gameRepository.DeleteAsync(homeTeamCode, awayTeamCode);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"ScoreBoardService > FinishGame: homeTeamCode = {homeTeamCode}, awayTeamCode = {awayTeamCode}");
                 throw;
             }
         }

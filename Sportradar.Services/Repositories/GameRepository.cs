@@ -33,14 +33,23 @@ namespace Sportradar.Services.Repositories
         public async Task UpdateScoreAsync(UpdateScoreDto model)
         {
             var entity = await GetAsync(model.HomeTeamCode, model.AwayTeamCode);
-            if (entity == null)
-            {
-                throw new KeyNotFoundException($"HomeTeamCode: {model.HomeTeamCode} and AwayTeamCode: {model.AwayTeamCode} not found");
-            }
+            ValidateNotNullEntity(entity, model.HomeTeamCode, model.AwayTeamCode);
 
-            entity.HomeTeamScore = model.HomeTeamScore;
+            entity!.HomeTeamScore = model.HomeTeamScore;
             entity.AwayTeamScore = model.AwayTeamScore;
             entity.TotalScore = entity.HomeTeamScore + model.AwayTeamScore;
+
+            await CommitAsync();
+        }
+
+        public async Task DeleteAsync(string homeTeamCode, string awayTeamCode)
+        {
+            var entity = await GetAsync(homeTeamCode, awayTeamCode);
+            ValidateNotNullEntity(entity, homeTeamCode, awayTeamCode);
+
+            _context
+                .Game
+                .Remove(entity!);
 
             await CommitAsync();
         }
@@ -50,12 +59,20 @@ namespace Sportradar.Services.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task<Team?> GetTeam(string code)
+        public async Task<Team?> GetTeamAsync(string code)
         {
             return await _context
                 .Team
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.TeamCode.Equals(code));
+        }
+
+        private void ValidateNotNullEntity(Game? entity, string homeTeamCode, string awayTeamCode)
+        {
+            if (entity == null)
+            {
+                throw new KeyNotFoundException($"HomeTeamCode: {homeTeamCode} and AwayTeamCode: {awayTeamCode} not found");
+            }
         }
     }
 }

@@ -6,5 +6,6 @@ namespace Sportradar.Services
     {
         Task StartGameAsync(string homeTeamCode, string awayTeamCode);
         Task UpdateScoreAsync(UpdateScoreDto updateScoreModel);
+        Task FinishGameAsync(string homeTeamCode, string awayTeamCode);
     }
 }

@@ -5,9 +5,10 @@ namespace Sportradar.Services.Repositories
 {
     public interface IGameRepository
     {
-        Task<Team?> GetTeam(string code);
         Task AddAsync(Game game);
         Task UpdateScoreAsync(UpdateScoreDto model);
+        Task DeleteAsync(string homeTeamCode, string awayTeamCode);
         Task CommitAsync();
+        Task<Team?> GetTeamAsync(string code);
     }
 }
