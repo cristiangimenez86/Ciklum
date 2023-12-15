@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Sportradar.Services.Entities;
 
 namespace Sportradar.Services.Validators
 {
     public interface IValidator
     {
+        void ValidateNotNullOrEmptyCodes(string homeTeamCode, string awayTeamCode);
+        void ValidateNotNullTeamEntity(Team? homeTeam, Team? awayTeam);
     }
 }

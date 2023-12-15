@@ -12,18 +12,15 @@ namespace Sportradar.Tests.UnitTests
     {
         private readonly Mock<IGameRepository> _gameRepositoryMock;
         private readonly Mock<IValidator> _validatorMock;
-        private readonly Mock<ILogger<ScoreBoardService>> _loggerMock;
 
         private readonly ScoreBoardService _scoreBoardService;
         public ScoreBoardServiceTests()
         {
             _gameRepositoryMock = new Mock<IGameRepository>();
             _validatorMock = new Mock<IValidator>();
-            _loggerMock = new Mock<ILogger<ScoreBoardService>>();
+            var loggerMock = new Mock<ILogger<ScoreBoardService>>();
 
-            _scoreBoardService = new ScoreBoardService(_gameRepositoryMock.Object, _validatorMock.Object, _loggerMock.Object);
-
-            //SetupLoggerMock(_loggerMock);
+            _scoreBoardService = new ScoreBoardService(_gameRepositoryMock.Object, _validatorMock.Object, loggerMock.Object);
         }
 
         [Theory]
@@ -39,6 +36,9 @@ namespace Sportradar.Tests.UnitTests
             _gameRepositoryMock.Setup(repo => repo.GetTeam(homeTeamCode)).ReturnsAsync(homeTeam);
             _gameRepositoryMock.Setup(repo => repo.GetTeam(awayTeamCode)).ReturnsAsync(awayTeam);
 
+            _validatorMock.Setup(v => v.ValidateNotNullOrEmptyCodes(homeTeamCode, awayTeamCode));
+            _validatorMock.Setup(v => v.ValidateNotNullTeamEntity(homeTeam, awayTeam));
+
             //Act
             await _scoreBoardService.StartGame(homeTeamCode, awayTeamCode);
 
@@ -47,6 +47,8 @@ namespace Sportradar.Tests.UnitTests
             _gameRepositoryMock.Verify(repo => repo.CommitAsync(), Times.Once);
             _gameRepositoryMock.Verify(repo => repo.GetTeam(homeTeamCode), Times.Once);
             _gameRepositoryMock.Verify(repo => repo.GetTeam(awayTeamCode), Times.Once);
+            _validatorMock.Verify(v => v.ValidateNotNullOrEmptyCodes(homeTeamCode, awayTeamCode), Times.Once);
+            _validatorMock.Verify(v => v.ValidateNotNullTeamEntity(homeTeam, awayTeam), Times.Once);
         }
     }
 }
