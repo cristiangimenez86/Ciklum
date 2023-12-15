@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Sportradar.Services.Entities;
 using Sportradar.Services.Repositories;
 using Sportradar.Services.Validators;
 
@@ -20,5 +21,18 @@ namespace Sportradar.Services
             _logger = logger;
         }
 
+        public async Task StartGame(string homeTeamCode, string awayTeamCode)
+        {
+            var game = new Game
+            {
+                HomeTeamCode = homeTeamCode,
+                HomeTeamName = "",
+                AwayTeamCode = awayTeamCode,
+                AwayTeamName = "",
+            };
+
+            await _gameRepository.AddAsync(game);
+            await _gameRepository.CommitAsync();
+        }
     }
 }
