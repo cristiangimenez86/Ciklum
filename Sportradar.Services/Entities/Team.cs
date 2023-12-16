@@ -1,6 +1,6 @@
 ﻿namespace Sportradar.Services.Entities
 {
-    public class Team
+    public record Team
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public required string TeamCode { get; set; }

@@ -5,6 +5,7 @@ using Sportradar.Services;
 using Sportradar.Services.Data;
 using Sportradar.Services.DbContexts;
 using Sportradar.Services.Entities;
+using Sportradar.Services.Exceptions;
 using Sportradar.Services.Models;
 using Sportradar.Services.Repositories;
 using Sportradar.Services.Validators;
@@ -57,10 +58,54 @@ namespace Sportradar.Tests.IntegrationTests
         }
 
         [Theory]
+        [InlineData("", "MEX")]
+        [InlineData("BOL", "")]
+        [InlineData(null, "COL")]
+        [InlineData("CHI", null)]
+        public async Task StartGameAsync_ThrowsScoreBoardException_WhenNullOrEmptyPairOfTeamCodes(string? homeTeamCode, string? awayTeamCode)
+        {
+            //Act
+            Task Action() => _scoreBoardService.StartGameAsync(homeTeamCode, awayTeamCode);
+
+
+            //assert
+            var exception = await Assert.ThrowsAsync<ScoreBoardException>(Action);
+            Assert.EndsWith("cannot be null or empty.", exception.Message);
+        }
+
+        [Fact]
+        public async Task StartGameAsync_ThrowsScoreBoardException_WhenAddingDuplicatedCodes()
+        {
+            //Arrange
+            await AddGamesToDatabase();
+
+            //Act
+            Task Action() => _scoreBoardService.StartGameAsync("ARG", "BRA");
+            
+            //assert
+            var exception = await Assert.ThrowsAsync<ScoreBoardException>(Action);
+            Assert.EndsWith("ensure that only one entity instance with a given key value is attached.", exception.Message);
+        }
+
+        [Theory]
+        [InlineData("NotATemCode", "MEX")]
+        [InlineData("BOL", "15447")]
+        public async Task StartGameAsync_ThrowsScoreBoardException_WhenInvalidPairOfTeamCodes(string homeTeamCode, string awayTeamCode)
+        {
+            //Act
+            Task Action() => _scoreBoardService.StartGameAsync(homeTeamCode, awayTeamCode);
+
+
+            //assert
+            var exception = await Assert.ThrowsAsync<ScoreBoardException>(Action);
+            Assert.StartsWith("Team not found:", exception.Message);
+        }
+
+        [Theory]
         [InlineData(2, 1)]
         [InlineData(2, 2)]
         [InlineData(3, 0)]
-        public async Task UpdateScoreAsync_UpdatesTheScoreOfAMatch_WhenValidData(int homeTeamScore, int awayTeamScore)
+        public async Task UpdateScoreAsync_UpdatesTheScoreOfAMatch_WhenValidScores(int homeTeamScore, int awayTeamScore)
         {
             //Arrange
             await AddGamesToDatabase();
@@ -75,6 +120,25 @@ namespace Sportradar.Tests.IntegrationTests
 
             Assert.Equal(homeTeamScore, game.HomeTeamScore);
             Assert.Equal(awayTeamScore, game.AwayTeamScore);
+        }
+
+        [Theory]
+        [InlineData("", 1, "COL", 2)]
+        [InlineData("ARG", 1, "", 2)]
+        [InlineData("ARG", 2, "COL", -25)]
+        [InlineData("ARG", 2000, "COL", 2)]
+        public async Task UpdateScoreAsync_ThrowsScoreBoardException_WhenInvalidScoresOrCodes(string homeTeamCode, int homeTeamScore, string awayTeamCode,  int awayTeamScore)
+        {
+            //Arrange
+            await AddGamesToDatabase();
+
+            //Act
+            var updateScoreModel = new UpdateScoreDto { HomeTeamCode = homeTeamCode, HomeTeamScore = homeTeamScore, AwayTeamCode = awayTeamCode, AwayTeamScore = awayTeamScore };
+            Task Action() => _scoreBoardService.UpdateScoreAsync(updateScoreModel);
+
+
+            //assert
+            var exception = await Assert.ThrowsAsync<ScoreBoardException>(Action);
         }
 
         [Fact]

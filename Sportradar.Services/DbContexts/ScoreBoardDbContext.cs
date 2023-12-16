@@ -24,8 +24,10 @@ namespace Sportradar.Services.DbContexts
             modelBuilder.Entity<Game>(
                 entity =>
                 {
-                    entity.HasIndex(x => x.HomeTeamCode).IsUnique();
-                    entity.HasIndex(x => x.AwayTeamCode).IsUnique();
+                    entity.HasIndex(x => x.HomeTeamCode);
+                    entity.HasAlternateKey(x => x.HomeTeamCode);
+                    entity.HasIndex(x => x.AwayTeamCode);
+                    entity.HasAlternateKey(x => x.AwayTeamCode);
                     entity.HasIndex(x => x.TotalScore);
                     entity.HasIndex(x => x.CreatedDate);
                 }
