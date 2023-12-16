@@ -39,8 +39,10 @@ namespace Sportradar.Tests.UnitTests
             _gameRepositoryMock.Setup(repo => repo.GetTeamAsync(homeTeamCode)).ReturnsAsync(homeTeam);
             _gameRepositoryMock.Setup(repo => repo.GetTeamAsync(awayTeamCode)).ReturnsAsync(awayTeam);
 
-            _validatorMock.Setup(v => v.ValidateNotNullOrEmptyCodes(homeTeamCode, awayTeamCode));
-            _validatorMock.Setup(v => v.ValidateNotNullTeamEntity(homeTeam, awayTeam));
+            _validatorMock.Setup(v => v.ValidateNotNullOrEmptyCode(homeTeamCode, "HomeTeamCode"));
+            _validatorMock.Setup(v => v.ValidateNotNullOrEmptyCode(awayTeamCode, "AwayTeamCode"));
+            _validatorMock.Setup(v => v.ValidateNotNullTeamEntity(homeTeam));
+            _validatorMock.Setup(v => v.ValidateNotNullTeamEntity(awayTeam));
 
             //Act
             await _scoreBoardService.StartGameAsync(homeTeamCode, awayTeamCode);
@@ -50,8 +52,10 @@ namespace Sportradar.Tests.UnitTests
             _gameRepositoryMock.Verify(repo => repo.CommitAsync(), Times.Once);
             _gameRepositoryMock.Verify(repo => repo.GetTeamAsync(homeTeamCode), Times.Once);
             _gameRepositoryMock.Verify(repo => repo.GetTeamAsync(awayTeamCode), Times.Once);
-            _validatorMock.Verify(v => v.ValidateNotNullOrEmptyCodes(homeTeamCode, awayTeamCode), Times.Once);
-            _validatorMock.Verify(v => v.ValidateNotNullTeamEntity(homeTeam, awayTeam), Times.Once);
+            _validatorMock.Verify(v => v.ValidateNotNullOrEmptyCode(homeTeamCode, "HomeTeamCode"), Times.Once);
+            _validatorMock.Verify(v => v.ValidateNotNullOrEmptyCode(awayTeamCode, "AwayTeamCode"), Times.Once);
+            _validatorMock.Verify(v => v.ValidateNotNullTeamEntity(homeTeam), Times.Once);
+            _validatorMock.Verify(v => v.ValidateNotNullTeamEntity(awayTeam), Times.Once);
         }
 
         [Theory]
@@ -84,14 +88,16 @@ namespace Sportradar.Tests.UnitTests
         public async Task FinishGameAsync_RemovesAMatchFromTheScoreBoard_WhenValidPairOfTeamCodes(string homeTeamCode, string awayTeamCode)
         {
             //Arrange
-            _validatorMock.Setup(v => v.ValidateNotNullOrEmptyCodes(homeTeamCode, awayTeamCode));
+            _validatorMock.Setup(v => v.ValidateNotNullOrEmptyCode(homeTeamCode, "HomeTeamCode"));
+            _validatorMock.Setup(v => v.ValidateNotNullOrEmptyCode(awayTeamCode, "AwayTeamCode"));
             _gameRepositoryMock.Setup(repo => repo.DeleteAsync(homeTeamCode, awayTeamCode));
 
             //Act
             await _scoreBoardService.FinishGameAsync(homeTeamCode, awayTeamCode);
 
             //Assert
-            _validatorMock.Verify(v => v.ValidateNotNullOrEmptyCodes(homeTeamCode, awayTeamCode), Times.Once);
+            _validatorMock.Verify(v => v.ValidateNotNullOrEmptyCode(homeTeamCode, "HomeTeamCode"), Times.Once);
+            _validatorMock.Verify(v => v.ValidateNotNullOrEmptyCode(awayTeamCode, "AwayTeamCode"), Times.Once);
             _gameRepositoryMock.Verify(repo => repo.DeleteAsync(homeTeamCode, awayTeamCode), Times.Once);
         }
 

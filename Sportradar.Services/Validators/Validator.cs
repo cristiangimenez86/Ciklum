@@ -6,54 +6,47 @@ namespace Sportradar.Services.Validators
     public class Validator : IValidator
     {
         private const int MaxScoreCount = 100;
-        public void ValidateNotNullOrEmptyCodes(string homeTeamCode, string awayTeamCode)
+        public void ValidateNotNullOrEmptyCode(string code, string parameterName)
         {
-            if (string.IsNullOrEmpty(homeTeamCode))
+            if (string.IsNullOrEmpty(code))
             {
-                throw new ArgumentException($"Argument {nameof(homeTeamCode)} cannot be null or empty.");
-            }
-
-            if (string.IsNullOrEmpty(awayTeamCode))
-            {
-                throw new ArgumentException($"Argument {nameof(awayTeamCode)} cannot be null or empty.");
+                throw new ArgumentException($"{parameterName} cannot be null or empty.");
             }
         }
 
-        public void ValidateNotNullTeamEntity(Team? homeTeam, Team? awayTeam)
+        public void ValidateNotNullTeamEntity(Team? team)
         {
-            if (homeTeam == null)
+            if (team == null)
             {
-                throw new InvalidOperationException($"Team not found: {homeTeam}.");
-            }
-
-            if (awayTeam == null)
-            {
-                throw new InvalidOperationException($"Team not found: {awayTeam}.");
+                throw new InvalidOperationException($"Team not found: {team}.");
             }
         }
 
         public void ValidateUpdateScoreModel(UpdateScoreDto updateScoreModel)
         {
-            ValidateNotNullOrEmptyCodes(updateScoreModel.HomeTeamCode, updateScoreModel.AwayTeamCode);
+            ValidateNotNullOrEmptyCode(updateScoreModel.HomeTeamCode, "HomeTeamCode");
+            ValidateNotNullOrEmptyCode(updateScoreModel.AwayTeamCode, "AwayTeamCode");
 
-            if (updateScoreModel.HomeTeamScore < 0)
+            ValidateNotNegative(updateScoreModel.HomeTeamScore, "HomeTeamScore");
+            ValidateNotNegative(updateScoreModel.AwayTeamScore, "AwayTeamScore");
+
+            ValidateNotGreaterThan(updateScoreModel.HomeTeamScore, "HomeTeamScore");
+            ValidateNotGreaterThan(updateScoreModel.AwayTeamScore, "AwayTeamScore");
+        }
+
+        private static void ValidateNotNegative(int number, string parameterName)
+        {
+            if (number < 0)
             {
-                throw new InvalidOperationException($"HomeTeamScore cannot be negative");
+                throw new ArgumentOutOfRangeException($"{parameterName} cannot be negative");
             }
+        }
 
-            if (updateScoreModel.HomeTeamScore > MaxScoreCount)
+        private static void ValidateNotGreaterThan(int number, string parameterName)
+        {
+            if (number > MaxScoreCount)
             {
-                throw new InvalidOperationException($"HomeTeamScore cannot be greater than {MaxScoreCount}");
-            }
-
-            if (updateScoreModel.AwayTeamScore < 0)
-            {
-                throw new InvalidOperationException($"AwayTeamScore cannot be negative");
-            }
-
-            if (updateScoreModel.AwayTeamScore > MaxScoreCount)
-            {
-                throw new InvalidOperationException($"AwayTeamScore cannot be greater than {MaxScoreCount}");
+                throw new InvalidOperationException($"{parameterName} cannot be greater than {MaxScoreCount}");
             }
         }
     }

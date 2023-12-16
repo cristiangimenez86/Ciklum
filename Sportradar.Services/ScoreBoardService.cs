@@ -4,6 +4,7 @@ using Sportradar.Services.Models;
 using Sportradar.Services.Repositories;
 using Sportradar.Services.Validators;
 using System.Text.Json;
+using Sportradar.Services.Exceptions;
 
 namespace Sportradar.Services
 {
@@ -27,12 +28,14 @@ namespace Sportradar.Services
         {
             try
             {
-                _validator.ValidateNotNullOrEmptyCodes(homeTeamCode, awayTeamCode);
+                _validator.ValidateNotNullOrEmptyCode(homeTeamCode, "HomeTeamCode");
+                _validator.ValidateNotNullOrEmptyCode(awayTeamCode, "AwayTeamCode");
 
                 var homeTeam = await _gameRepository.GetTeamAsync(homeTeamCode);
                 var awayTeam = await _gameRepository.GetTeamAsync(awayTeamCode);
 
-                _validator.ValidateNotNullTeamEntity(homeTeam, awayTeam);
+                _validator.ValidateNotNullTeamEntity(homeTeam);
+                _validator.ValidateNotNullTeamEntity(awayTeam);
 
                 var game = new Game
                 {
@@ -48,7 +51,7 @@ namespace Sportradar.Services
             catch (Exception e)
             {
                 _logger.LogError(e, $"ScoreBoardService > StartGameAsync: homeTeamCode = {homeTeamCode}, awayTeamCode = {awayTeamCode}");
-                throw;
+                throw new ScoreBoardException(e.Message, e);
             }
         }
 
@@ -63,7 +66,7 @@ namespace Sportradar.Services
             catch (Exception e)
             {
                 _logger.LogError(e, $"ScoreBoardService > UpdateScoreAsync: updateScoreModel = {JsonSerializer.Serialize(updateScoreModel)}");
-                throw;
+                throw new ScoreBoardException(e.Message, e);
             }
         }
 
@@ -71,14 +74,15 @@ namespace Sportradar.Services
         {
             try
             {
-                _validator.ValidateNotNullOrEmptyCodes(homeTeamCode, awayTeamCode);
+                _validator.ValidateNotNullOrEmptyCode(homeTeamCode, "HomeTeamCode");
+                _validator.ValidateNotNullOrEmptyCode(awayTeamCode, "AwayTeamCode");
 
                 await _gameRepository.DeleteAsync(homeTeamCode, awayTeamCode);
             }
             catch (Exception e)
             {
                 _logger.LogError(e, $"ScoreBoardService > FinishGameAsync: homeTeamCode = {homeTeamCode}, awayTeamCode = {awayTeamCode}");
-                throw;
+                throw new ScoreBoardException(e.Message, e);
             }
         }
 
@@ -99,7 +103,7 @@ namespace Sportradar.Services
             catch (Exception e)
             {
                 _logger.LogError(e, $"ScoreBoardService > GetSummaryAsync");
-                throw;
+                throw new ScoreBoardException(e.Message, e);
             }
         }
     }
