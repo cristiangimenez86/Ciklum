@@ -19,7 +19,7 @@ namespace Sportradar.Services.Repositories
         {
             return await _context
                 .Game
-                .OrderBy(x => x.TotalScore)
+                .OrderByDescending(x => x.TotalScore)
                 .ThenByDescending(x => x.CreatedDate)
                 .ToListAsync();
         }

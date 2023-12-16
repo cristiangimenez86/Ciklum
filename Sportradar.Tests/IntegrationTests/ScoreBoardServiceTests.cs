@@ -65,7 +65,7 @@ namespace Sportradar.Tests.IntegrationTests
         public async Task StartGameAsync_ThrowsScoreBoardException_WhenNullOrEmptyPairOfTeamCodes(string? homeTeamCode, string? awayTeamCode)
         {
             //Act
-            Task Action() => _scoreBoardService.StartGameAsync(homeTeamCode, awayTeamCode);
+            Task Action() => _scoreBoardService.StartGameAsync(homeTeamCode!, awayTeamCode!);
 
 
             //assert
@@ -77,7 +77,7 @@ namespace Sportradar.Tests.IntegrationTests
         public async Task StartGameAsync_ThrowsScoreBoardException_WhenAddingDuplicatedCodes()
         {
             //Arrange
-            await AddGamesToDatabase();
+            await Add2GamesToDatabase();
 
             //Act
             Task Action() => _scoreBoardService.StartGameAsync("ARG", "BRA");
@@ -108,7 +108,7 @@ namespace Sportradar.Tests.IntegrationTests
         public async Task UpdateScoreAsync_UpdatesTheScoreOfAMatch_WhenValidScores(int homeTeamScore, int awayTeamScore)
         {
             //Arrange
-            await AddGamesToDatabase();
+            await Add2GamesToDatabase();
 
             //Act
             var updateScoreModel = new UpdateScoreDto { HomeTeamCode = "ARG", HomeTeamScore = homeTeamScore, AwayTeamCode = "BRA", AwayTeamScore = awayTeamScore };
@@ -130,7 +130,7 @@ namespace Sportradar.Tests.IntegrationTests
         public async Task UpdateScoreAsync_ThrowsScoreBoardException_WhenInvalidScoresOrCodes(string homeTeamCode, int homeTeamScore, string awayTeamCode,  int awayTeamScore)
         {
             //Arrange
-            await AddGamesToDatabase();
+            await Add2GamesToDatabase();
 
             //Act
             var updateScoreModel = new UpdateScoreDto { HomeTeamCode = homeTeamCode, HomeTeamScore = homeTeamScore, AwayTeamCode = awayTeamCode, AwayTeamScore = awayTeamScore };
@@ -138,14 +138,14 @@ namespace Sportradar.Tests.IntegrationTests
 
 
             //assert
-            var exception = await Assert.ThrowsAsync<ScoreBoardException>(Action);
+            _ = await Assert.ThrowsAsync<ScoreBoardException>(Action);
         }
 
         [Fact]
         public async Task FinishGameAsync_RemovesAMatchFromTheScoreBoard_WhenValidPairOfTeamCodes()
         {
             //Arrange
-            await AddGamesToDatabase();
+            await Add2GamesToDatabase();
             var gamesBeforeDelete = await _gameRepository.GetAsync();
 
             //Act
@@ -158,10 +158,10 @@ namespace Sportradar.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task GetSummaryAsync_ReturnsAListOfGameSummaryDto()
+        public async Task GetSummaryAsync_ReturnsAListOfGameSummary_WhenThereIsDataInTheDatabase()
         {
             //Arrange
-            await AddGamesToDatabase();
+            await Add2GamesToDatabase();
 
             //Act
             var result = await _scoreBoardService.GetSummaryAsync();
@@ -171,12 +171,64 @@ namespace Sportradar.Tests.IntegrationTests
             Assert.NotEmpty(actualSummary);
         }
 
-        private async Task AddGamesToDatabase()
+        [Fact]
+        public async Task GetSummaryAsync_ReturnsAnEmptyListOfGameSummary_WhenThereIsNoDataInTheDatabase()
+        {
+            //Act
+            var result = await _scoreBoardService.GetSummaryAsync();
+            var actualSummary = result.ToList();
+
+            //Assert
+            Assert.Empty(actualSummary);
+        }
+
+        [Fact]
+        public async Task GetSummaryAsync_ReturnsAListOfGameSummary_InCorrectOrder()
+        {
+            //Arrange
+            await Add5GamesToDatabase();
+
+            //Act
+            var result = await _scoreBoardService.GetSummaryAsync();
+            var actualSummary = result.ToList();
+
+            //Assert
+            Assert.NotEmpty(actualSummary);
+            
+            var firstRecord = actualSummary.First();
+            var lastRecord = actualSummary.Last();
+            Assert.Equal("Uruguay", firstRecord.HomeTeam);
+            Assert.Equal(6, firstRecord.HomeTeamScore);
+            Assert.Equal("Italy", firstRecord.AwayTeam);
+            Assert.Equal(6, firstRecord.AwayTeamScore);
+
+            Assert.Equal("Germany", lastRecord.HomeTeam);
+            Assert.Equal(2, lastRecord.HomeTeamScore);
+            Assert.Equal("France", lastRecord.AwayTeam);
+            Assert.Equal(2, lastRecord.AwayTeamScore);
+        }
+
+        private async Task Add2GamesToDatabase()
         {
             var entity1 = new Game { HomeTeamCode = "ARG", HomeTeamName = "Argentina", HomeTeamScore = 3, AwayTeamCode = "BRA", AwayTeamName = "Brazil", AwayTeamScore = 0 };
             var entity2 = new Game { HomeTeamCode = "CHI", HomeTeamName = "Chile", HomeTeamScore = 4, AwayTeamCode = "COL", AwayTeamName = "Colombia", AwayTeamScore = 2 };
             await _gameRepository.AddAsync(entity1);
             await _gameRepository.AddAsync(entity2);
+            await _gameRepository.CommitAsync();
+        }
+
+        private async Task Add5GamesToDatabase()
+        {
+            var entity1 = new Game { HomeTeamCode = "MEX", HomeTeamName = "Mexico", HomeTeamScore = 0, AwayTeamCode = "CAN", AwayTeamName = "Canada", AwayTeamScore = 5, TotalScore = 5, CreatedDate = DateTimeOffset.Now};
+            var entity2 = new Game { HomeTeamCode = "ESP", HomeTeamName = "Spain", HomeTeamScore = 10, AwayTeamCode = "BRA", AwayTeamName = "Brazil", AwayTeamScore = 2, TotalScore = 12, CreatedDate = DateTimeOffset.Now.AddHours(1) };
+            var entity3 = new Game { HomeTeamCode = "GER", HomeTeamName = "Germany", HomeTeamScore = 2, AwayTeamCode = "FRA", AwayTeamName = "France", AwayTeamScore = 2, TotalScore = 4, CreatedDate = DateTimeOffset.Now.AddHours(2) };
+            var entity4 = new Game { HomeTeamCode = "URU", HomeTeamName = "Uruguay", HomeTeamScore = 6, AwayTeamCode = "ITA", AwayTeamName = "Italy", AwayTeamScore = 6, TotalScore = 12, CreatedDate = DateTimeOffset.Now.AddHours(3) };
+            var entity5 = new Game { HomeTeamCode = "ARG", HomeTeamName = "Argentina", HomeTeamScore = 3, AwayTeamCode = "AUS", AwayTeamName = "Australia", AwayTeamScore = 1, TotalScore = 4, CreatedDate = DateTimeOffset.Now.AddHours(4) };
+            await _gameRepository.AddAsync(entity1);
+            await _gameRepository.AddAsync(entity2);
+            await _gameRepository.AddAsync(entity3);
+            await _gameRepository.AddAsync(entity4);
+            await _gameRepository.AddAsync(entity5);
             await _gameRepository.CommitAsync();
         }
     }
